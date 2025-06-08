@@ -1,6 +1,7 @@
 package com.compresser.compresser.conteroller;
 
 import com.compresser.compresser.service.CompressionService;
+import com.compresser.compresser.service.CompressionService.CompressionAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -23,8 +24,17 @@ public class CompressionController {
     private final CompressionService compressionService;
 
     @PostMapping("/compress")
-    public ResponseEntity<FileSystemResource> compress(@RequestParam("file") MultipartFile file) throws IOException {
-        Path path = compressionService.compress(file);
+    public ResponseEntity<FileSystemResource> compress(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "algorithm", defaultValue = "GZIP") String algorithm) throws IOException {
+        CompressionAlgorithm compressionAlgorithm;
+        try {
+            compressionAlgorithm = CompressionAlgorithm.valueOf(algorithm.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid compression algorithm. Supported algorithms are: GZIP, HUFFMAN");
+        }
+        
+        Path path = compressionService.compress(file, compressionAlgorithm);
         return prepareResponse(path);
     }
 

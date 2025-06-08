@@ -20,9 +20,14 @@ import java.util.zip.GZIPOutputStream;
 public class CompressionService {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private final HuffmanCompressor huffmanCompressor = new HuffmanCompressor();
 
+    public enum CompressionAlgorithm {
+        GZIP,
+        HUFFMAN
+    }
 
-    public Path compress(MultipartFile file) throws IOException {
+    public Path compress(MultipartFile file, CompressionAlgorithm algorithm) throws IOException {
         InputStream inputStream = file.getInputStream();
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
@@ -31,6 +36,10 @@ public class CompressionService {
         Path outputPath = Path.of(originalFilename + ".compressed");
 
         try (OutputStream outputStream = Files.newOutputStream(outputPath)) {
+            // Write algorithm type
+            outputStream.write(ByteBuffer.allocate(4).putInt(algorithm.ordinal()).array());
+            
+            // Write filename
             byte[] filenameBytes = originalFilename.getBytes();
             outputStream.write(ByteBuffer.allocate(4).putInt(filenameBytes.length).array());
             outputStream.write(filenameBytes);
@@ -41,7 +50,15 @@ public class CompressionService {
 
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 byte[] block = Arrays.copyOf(buffer, bytesRead);
-                futures.add(executor.submit(() -> compressChunk(block)));
+                futures.add(executor.submit(() -> {
+                    try {
+                        return algorithm == CompressionAlgorithm.GZIP ? 
+                            compressChunk(block) : 
+                            huffmanCompressor.compress(block);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
             }
 
             for (Future<byte[]> future : futures) {
@@ -60,6 +77,11 @@ public class CompressionService {
     public Path decompress(MultipartFile file) throws IOException {
         InputStream inputStream = file.getInputStream();
 
+        // Read algorithm type
+        byte[] algorithmHeader = inputStream.readNBytes(4);
+        CompressionAlgorithm algorithm = CompressionAlgorithm.values()[ByteBuffer.wrap(algorithmHeader).getInt()];
+
+        // Read filename
         byte[] filenameHeader = inputStream.readNBytes(4);
         int filenameLength = ByteBuffer.wrap(filenameHeader).getInt();
         String originalFilename = "";
@@ -81,7 +103,15 @@ public class CompressionService {
                 byte[] chunk = inputStream.readNBytes(chunkSize);
                 if (chunk.length < chunkSize) break;
 
-                futures.add(executor.submit(() -> decompressChunk(chunk)));
+                futures.add(executor.submit(() -> {
+                    try {
+                        return algorithm == CompressionAlgorithm.GZIP ? 
+                            decompressChunk(chunk) : 
+                            huffmanCompressor.decompress(chunk);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
             }
 
             for (Future<byte[]> future : futures) {
@@ -94,7 +124,6 @@ public class CompressionService {
 
         return outputPath;
     }
-
 
     private byte[] compressChunk(byte[] data) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
