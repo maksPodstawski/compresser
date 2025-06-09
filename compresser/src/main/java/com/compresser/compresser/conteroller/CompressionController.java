@@ -18,10 +18,13 @@ import java.nio.file.Path;
 
 @RestController
 @RequestMapping("/api")
-@RequiredArgsConstructor
 public class CompressionController {
 
     private final CompressionService compressionService;
+
+    public CompressionController(CompressionService compressionService) {
+        this.compressionService = compressionService;
+    }
 
     @PostMapping("/compress")
     public ResponseEntity<FileSystemResource> compress(
