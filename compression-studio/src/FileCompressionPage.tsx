@@ -51,7 +51,7 @@ export default function FileCompressionPage() {
         formData.append("algorithm", compressionMethod.toUpperCase());
 
         try {
-            const response = await fetch("/api/compress", {
+            const response = await fetch("http://localhost:8080/api/compress", {
                 method: "POST",
                 body: formData,
             });
@@ -89,7 +89,7 @@ export default function FileCompressionPage() {
         formData.append("file", selectedFile);
 
         try {
-            const response = await fetch("/api/decompress", {
+            const response = await fetch("http://localhost:8080/api/decompress", {
                 method: "POST",
                 body: formData,
             });

@@ -1,6 +1,5 @@
-import React from 'react';
-import './styles/tailwind.css';
 import FileCompressionPage from "./FileCompressionPage";
+import "./style/tailwind.css";
 
 function App() {
   return <FileCompressionPage />;
