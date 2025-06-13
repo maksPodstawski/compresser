@@ -129,18 +129,18 @@ export default function FileCompressionPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <div className="container mx-auto p-6 max-w-4xl">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-orange-400 bg-clip-text text-transparent flex items-center justify-center gap-3">
-                        <Zap className="w-10 h-10 text-orange-400"/>
+            <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 max-w-7xl">
+                <div className="text-center mb-6 sm:mb-8">
+                    <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-orange-400 bg-clip-text text-transparent flex items-center justify-center gap-2 sm:gap-3">
+                        <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-orange-400"/>
                         File Compression Studio
                     </h1>
-                    <p className="text-slate-300">
+                    <p className="text-slate-300 text-sm sm:text-base">
                         Compress and decompress files using Huffman coding or Gzip algorithms
                     </p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-purple-300">
@@ -153,7 +153,7 @@ export default function FileCompressionPage() {
 
                             <div className="space-y-3">
                                 <Label className="text-base font-medium text-slate-200">Compression Method</Label>
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                                     <label
                                         htmlFor="huffman"
@@ -253,7 +253,7 @@ export default function FileCompressionPage() {
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 justify-center">
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                 <Button
                                     onClick={handleCompress}
                                     disabled={!selectedFile || isProcessing}
@@ -302,7 +302,7 @@ export default function FileCompressionPage() {
 
                             {result ? (
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                         <div className="space-y-2 bg-slate-700/30 rounded-lg p-4">
                                             <p className="font-medium text-slate-300 flex items-center gap-2">
                                                 <FileText className="w-4 h-4"/>
@@ -345,7 +345,7 @@ export default function FileCompressionPage() {
 
                                     <Button
                                         onClick={downloadResult}
-                                        className="flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 mx-auto"
+                                        className="flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 mx-auto w-full sm:w-auto"
                                         size="lg"
                                     >
                                         {result.type === "compress"
