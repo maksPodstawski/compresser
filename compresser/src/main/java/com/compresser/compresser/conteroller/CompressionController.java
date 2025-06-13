@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +56,7 @@ public class CompressionController {
         
         Path path = compressionService.compress(file, compressionAlgorithm);
         Path targetPath = FILES_DIR.resolve(path.getFileName());
-        Files.move(path, targetPath);
+        Files.move(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
         return prepareResponse(targetPath);
     }
 
@@ -63,7 +64,7 @@ public class CompressionController {
     public ResponseEntity<FileSystemResource> decompress(@RequestParam("file") MultipartFile file) throws IOException {
         Path path = compressionService.decompress(file);
         Path targetPath = FILES_DIR.resolve(path.getFileName());
-        Files.move(path, targetPath);
+        Files.move(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
         return prepareResponse(targetPath);
     }
 

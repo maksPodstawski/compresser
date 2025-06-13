@@ -211,7 +211,18 @@ export default function FileCompressionPage() {
                                     Select File
                                 </Label>
                                 <div
-                                    className="border-2 border-dashed border-slate-600 bg-slate-800/30 rounded-lg p-6 text-center hover:border-purple-500/50 transition-colors">
+                                    className="border-2 border-dashed border-slate-600 bg-slate-800/30 rounded-lg p-6 text-center hover:border-purple-500/50 transition-colors"
+                                    onDragOver={e => e.preventDefault()}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        const file = e.dataTransfer.files?.[0];
+                                        if (file) {
+                                            setSelectedFile(file);
+                                            setResult(null);
+                                            setError(null);
+                                        }
+                                    }}
+                                >
                                     <input
                                         id="file-input"
                                         type="file"
@@ -337,7 +348,10 @@ export default function FileCompressionPage() {
                                         className="flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0 mx-auto"
                                         size="lg"
                                     >
-                                        <Download className="w-4 h-4 mr-2" />
+                                        {result.type === "compress"
+                                            ? <Archive className="w-4 h-4 mr-2" />
+                                            : <Download className="w-4 h-4 mr-2" />
+                                        }
                                         Download {result.type === "compress" ? "Compressed" : "Decompressed"} File
                                     </Button>
 
