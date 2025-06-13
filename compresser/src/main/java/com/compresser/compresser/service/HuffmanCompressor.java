@@ -22,13 +22,11 @@ public class HuffmanCompressor {
     }
 
     public byte[] compress(byte[] data) throws IOException {
-        // Calculate frequency of each byte
         Map<Byte, Integer> frequencyMap = new HashMap<>();
         for (byte b : data) {
             frequencyMap.merge(b, 1, Integer::sum);
         }
 
-        // Build Huffman tree
         PriorityQueue<HuffmanNode> pq = new PriorityQueue<>();
         for (Map.Entry<Byte, Integer> entry : frequencyMap.entrySet()) {
             pq.add(new HuffmanNode(entry.getKey(), entry.getValue()));
@@ -43,38 +41,30 @@ public class HuffmanCompressor {
             pq.add(parent);
         }
 
-        // Generate Huffman codes
         Map<Byte, String> huffmanCodes = new HashMap<>();
         generateCodes(pq.peek(), "", huffmanCodes);
 
-        // Write frequency table and compressed data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
 
-        // Write frequency table size
         dos.writeInt(frequencyMap.size());
-        
-        // Write frequency table
+
         for (Map.Entry<Byte, Integer> entry : frequencyMap.entrySet()) {
             dos.writeByte(entry.getKey());
             dos.writeInt(entry.getValue());
         }
 
-        // Write compressed data
         StringBuilder compressedBits = new StringBuilder();
         for (byte b : data) {
             compressedBits.append(huffmanCodes.get(b));
         }
 
-        // Pad the bits to make them divisible by 8
         while (compressedBits.length() % 8 != 0) {
             compressedBits.append("0");
         }
 
-        // Write the number of padding bits
         dos.writeInt(compressedBits.length() % 8);
 
-        // Write the compressed data
         for (int i = 0; i < compressedBits.length(); i += 8) {
             String byteStr = compressedBits.substring(i, i + 8);
             dos.writeByte((byte) Integer.parseInt(byteStr, 2));
@@ -86,7 +76,6 @@ public class HuffmanCompressor {
     public byte[] decompress(byte[] compressedData) throws IOException {
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(compressedData));
 
-        // Read frequency table
         int tableSize = dis.readInt();
         Map<Byte, Integer> frequencyMap = new HashMap<>();
         for (int i = 0; i < tableSize; i++) {
@@ -95,7 +84,6 @@ public class HuffmanCompressor {
             frequencyMap.put(value, frequency);
         }
 
-        // Rebuild Huffman tree
         PriorityQueue<HuffmanNode> pq = new PriorityQueue<>();
         for (Map.Entry<Byte, Integer> entry : frequencyMap.entrySet()) {
             pq.add(new HuffmanNode(entry.getKey(), entry.getValue()));
@@ -110,10 +98,8 @@ public class HuffmanCompressor {
             pq.add(parent);
         }
 
-        // Read padding bits
         int paddingBits = dis.readInt();
 
-        // Read compressed data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         HuffmanNode root = pq.peek();
         HuffmanNode current = root;

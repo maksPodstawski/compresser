@@ -36,10 +36,8 @@ public class CompressionService {
         Path outputPath = Path.of(originalFilename + ".compressed");
 
         try (OutputStream outputStream = Files.newOutputStream(outputPath)) {
-            // Write algorithm type
             outputStream.write(ByteBuffer.allocate(4).putInt(algorithm.ordinal()).array());
-            
-            // Write filename
+
             byte[] filenameBytes = originalFilename.getBytes();
             outputStream.write(ByteBuffer.allocate(4).putInt(filenameBytes.length).array());
             outputStream.write(filenameBytes);
@@ -77,11 +75,9 @@ public class CompressionService {
     public Path decompress(MultipartFile file) throws IOException {
         InputStream inputStream = file.getInputStream();
 
-        // Read algorithm type
         byte[] algorithmHeader = inputStream.readNBytes(4);
         CompressionAlgorithm algorithm = CompressionAlgorithm.values()[ByteBuffer.wrap(algorithmHeader).getInt()];
 
-        // Read filename
         byte[] filenameHeader = inputStream.readNBytes(4);
         int filenameLength = ByteBuffer.wrap(filenameHeader).getInt();
         String originalFilename = "";
