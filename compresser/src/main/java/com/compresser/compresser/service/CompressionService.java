@@ -142,4 +142,38 @@ public class CompressionService {
             return baos.toByteArray();
         }
     }
+
+    public Path compressSync(MultipartFile file, CompressionAlgorithm algorithm) throws IOException {
+        InputStream inputStream = file.getInputStream();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            originalFilename = "compressed-file";
+        }
+        Path outputPath = Path.of(originalFilename + ".compressed");
+
+        try (OutputStream outputStream = Files.newOutputStream(outputPath)) {
+            outputStream.write(ByteBuffer.allocate(4).putInt(algorithm.ordinal()).array());
+
+            byte[] filenameBytes = originalFilename.getBytes();
+            outputStream.write(ByteBuffer.allocate(4).putInt(filenameBytes.length).array());
+            outputStream.write(filenameBytes);
+
+            byte[] buffer = new byte[1024 * 1024];
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byte[] block = Arrays.copyOf(buffer, bytesRead);
+                byte[] compressed = algorithm == CompressionAlgorithm.GZIP ?
+                        compressChunk(block) :
+                        huffmanCompressor.compress(block);
+                outputStream.write(ByteBuffer.allocate(4).putInt(compressed.length).array());
+                outputStream.write(compressed);
+            }
+
+        } catch (Exception e) {
+            throw new IOException("Compression failed", e);
+        }
+
+        return outputPath;
+    }
 }

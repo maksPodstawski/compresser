@@ -53,8 +53,14 @@ public class CompressionController {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid compression algorithm. Supported algorithms are: GZIP, HUFFMAN");
         }
-        
+
+        long startTime = System.nanoTime();
         Path path = compressionService.compress(file, compressionAlgorithm);
+        long endTime = System.nanoTime();
+
+        long duration = (endTime - startTime) / 1_000_000;
+        System.out.println("Compression async time: " + duration + " ms");
+
         Path targetPath = FILES_DIR.resolve(path.getFileName());
         Files.move(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
         return prepareResponse(targetPath);
@@ -68,17 +74,34 @@ public class CompressionController {
         return prepareResponse(targetPath);
     }
 
+
+
+    @PostMapping("/compress-sync")
+    public ResponseEntity<FileSystemResource> compressSync(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "algorithm", defaultValue = "GZIP") String algorithm) throws IOException {
+        CompressionAlgorithm compressionAlgorithm;
+        try {
+            compressionAlgorithm = CompressionAlgorithm.valueOf(algorithm.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid compression algorithm. Supported algorithms are: GZIP, HUFFMAN");
+        }
+
+        long startTime = System.nanoTime();
+        Path path = compressionService.compressSync(file, compressionAlgorithm);
+        long endTime = System.nanoTime();
+
+        long duration = (endTime - startTime) / 1_000_000;
+        System.out.println("Compression sync time: " + duration + " ms");
+
+        Path targetPath = FILES_DIR.resolve(path.getFileName());
+        Files.move(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        return prepareResponse(targetPath);
+    }
+
     private ResponseEntity<FileSystemResource> prepareResponse(Path file) throws IOException {
         FileSystemResource resource = new FileSystemResource(file.toFile());
         String filename = file.getFileName().toString();
-
-        scheduler.schedule(() -> {
-            try {
-                Files.deleteIfExists(file);
-            } catch (IOException e) {
-                System.err.println("Failed to delete file: " + file);
-            }
-        }, 1, TimeUnit.MINUTES);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
